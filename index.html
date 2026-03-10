@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARPG Tier List - Reddit Ready</title>
+    <title>ARPG Tier List - Ultimate Customizer</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -80,6 +80,7 @@
         .tier-c { background-color: #7fff7f; }
         .tier-d { background-color: #7fbfff; }
         .tier-e { background-color: #7f7fff; }
+        .tier-f { background-color: #444444; color: #fff; } /* Added F Tier Style */
 
         .drop-zone {
             flex-grow: 1;
@@ -176,7 +177,7 @@
         <div class="tier-row"><div class="tier-label tier-c">C</div><div class="drop-zone" id="c-tier"></div></div>
         <div class="tier-row"><div class="tier-label tier-d">D</div><div class="drop-zone" id="d-tier"></div></div>
         <div class="tier-row"><div class="tier-label tier-e">E</div><div class="drop-zone" id="e-tier"></div></div>
-    </div>
+        <div class="tier-row"><div class="tier-label tier-f">F</div><div class="drop-zone" id="f-tier"></div></div> </div>
 
     <h3>Inventory Pool</h3>
     <div class="item-pool-container drop-zone" id="item-pool"></div>
@@ -189,7 +190,7 @@
     <script>
         const pool = document.getElementById('item-pool');
         let deleteMode = false;
-        const SAVE_KEY = 'arpgTierList_V5';
+        const SAVE_KEY = 'arpgTierList_V6'; // Incremented key for clean F-tier deployment
 
         function saveState() {
             const state = { tiers: {}, pool: [] };
@@ -238,37 +239,23 @@
         }
 
         function resetToDefault() {
-            if(confirm("Wipe all data?")) { localStorage.removeItem(SAVE_KEY); location.reload(); }
+            if(confirm("Wipe all data and return to default?")) { localStorage.removeItem(SAVE_KEY); location.reload(); }
         }
 
-        // REDDIT COPY LOGIC
         function copyForReddit() {
             let markdown = "# 🛡️ My ARPG Gear Tier List\n\n";
             markdown += "*Ranked Left-to-Right (Strongest to Weakest in Tier)*\n\n---\n\n";
-
             document.querySelectorAll('.tier-row').forEach(row => {
                 const label = row.querySelector('.tier-label').innerText;
-                const items = Array.from(row.querySelectorAll('.item')).map(item => {
-                    // Clean up text (remove <br> tags)
-                    return item.querySelector('.editable-text').innerText.replace(/\n/g, " ");
-                });
-
+                const items = Array.from(row.querySelectorAll('.item')).map(item => item.querySelector('.editable-text').innerText.replace(/\n/g, " "));
                 markdown += `### **${label} Tier**\n`;
                 if (items.length > 0) {
-                    items.forEach((name, index) => {
-                        markdown += `${index + 1}. **${name}**\n`;
-                    });
-                } else {
-                    markdown += "*No items ranked here.*\n";
-                }
+                    items.forEach((name, index) => { markdown += `${index + 1}. **${name}**\n`; });
+                } else { markdown += "*No items ranked here.*\n"; }
                 markdown += "\n";
             });
-
             markdown += "---\n*Generated via custom ARPG Tier Maker tool.*";
-
-            navigator.clipboard.writeText(markdown).then(() => {
-                alert("Markdown copied to clipboard! You can now paste this directly into a Reddit post.");
-            });
+            navigator.clipboard.writeText(markdown).then(() => { alert("Markdown copied to clipboard!"); });
         }
 
         // Initialization
@@ -277,7 +264,9 @@
             const s = JSON.parse(saved);
             Object.keys(s.tiers).forEach(k => {
                 const zone = document.querySelector(`.tier-label.tier-${k}`).nextElementSibling;
-                s.tiers[k].forEach(i => zone.appendChild(createItem(i.text, i.color)));
+                if(zone) { // Check for existence (safe for F-tier migration)
+                    s.tiers[k].forEach(i => zone.appendChild(createItem(i.text, i.color)));
+                }
             });
             s.pool.forEach(i => pool.appendChild(createItem(i.text, i.color)));
         } else {
